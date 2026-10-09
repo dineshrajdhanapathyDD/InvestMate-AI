@@ -76,8 +76,17 @@ no-fabrication guarantee, date retention, and sample labelling.
   and the SPA deep-link fallback worked, all confirmed with live requests.
 - Repository: see the project README, SAM template, and the 36 automated tests.
 
-Screenshots of a successful research answer and of a graceful failure state
-should be captured from the public app URL above in a browser before submission;
-they are not included here because they were not produced during this build.
+Screenshots captured from the live app (`docs/screenshots/`):
+
+- `dashboard.png` - market indices, the Reliance historical chart with derived
+  metrics, and "Demonstration data" labels with timestamps.
+- `connection-health.png` - the Settings page showing the live model
+  (`apac.amazon.nova-lite-v1:0`, `ap-south-1`) and the honest NSE MCP fallback
+  explanation.
+- `research.png` - the AI research panel.
+- `portfolio.png` - the portfolio risk explorer.
+
+An architecture diagram is in `docs/architecture.drawio` (editable) and
+`docs/architecture.md` is rendered from the same design.
 
 InvestMate AI is for educational use only and is not investment advice.
