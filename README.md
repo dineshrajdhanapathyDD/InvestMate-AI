@@ -5,7 +5,7 @@
 InvestMate AI is an AI-powered investment research companion for Indian retail
 investors. Ask a plain-English question about an NSE-listed stock and get an
 evidence-grounded explanation, historical charts, a watchlist, and a basic
-portfolio-risk view — with a **Beginner Mode** that explains everything in
+portfolio-risk view, with a **Beginner Mode** that explains everything in
 plain language.
 
 Built for the AWS Builder Center "Build an Agent" weekend challenge.
@@ -73,3 +73,17 @@ cd ../frontend
 npm install
 npm run dev                 # http://localhost:5173
 ```
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
+coding conventions, and the data-honesty guarantees the project maintains.
+
+## License
+
+Released under the [MIT License](LICENSE).
+
+## Disclaimer
+
+InvestMate AI is for educational use only and is not investment advice. Market
+data shown may be demonstration data and is clearly labelled when so.
