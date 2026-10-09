@@ -86,7 +86,10 @@ Screenshots captured from the live app (`docs/screenshots/`):
 - `research.png` - the AI research panel.
 - `portfolio.png` - the portfolio risk explorer.
 
-An architecture diagram is in `docs/architecture.drawio` (editable) and
-`docs/architecture.md` is rendered from the same design.
+Architecture diagrams:
+- `docs/architecture-aws.drawio` - AWS format with official AWS service icons
+  (CloudFront, S3, API Gateway, Lambda, Bedrock, DynamoDB, CloudWatch, IAM).
+- `docs/architecture.drawio` - plain editable version.
+- `docs/architecture.md` - mermaid render of the same design.
 
 InvestMate AI is for educational use only and is not investment advice.
