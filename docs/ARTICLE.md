@@ -70,7 +70,14 @@ no-fabrication guarantee, date retention, and sample labelling.
 - API health: `https://yrdnvo6e7c.execute-api.ap-south-1.amazonaws.com/prod/api/v1/health`
 - A live `POST /research` for TCS returned a Beginner Mode answer whose every
   number (period return, high, low, volatility, observation count) matched the
-  retrieved evidence, with `isSample: true` and source timestamps.
-- Repository: see the project README, SAM template, and test suites.
+  retrieved evidence, with `isSample: true` and source timestamps. The raw
+  response was captured during deployment verification.
+- CloudFront served the app over HTTPS (200), the API CORS preflight succeeded,
+  and the SPA deep-link fallback worked, all confirmed with live requests.
+- Repository: see the project README, SAM template, and the 36 automated tests.
+
+Screenshots of a successful research answer and of a graceful failure state
+should be captured from the public app URL above in a browser before submission;
+they are not included here because they were not produced during this build.
 
 InvestMate AI is for educational use only and is not investment advice.
