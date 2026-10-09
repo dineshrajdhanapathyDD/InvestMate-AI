@@ -10,6 +10,29 @@ plain language.
 
 Built for the AWS Builder Center "Build an Agent" weekend challenge.
 
+## Live demo
+
+- App: https://d2x3869ki4yvj9.cloudfront.net
+- API health: https://yrdnvo6e7c.execute-api.ap-south-1.amazonaws.com/prod/api/v1/health
+
+## Architecture
+
+![AWS architecture](docs/screenshots/architecture-aws.png)
+
+React SPA on CloudFront + S3, calling API Gateway, a Python Lambda agent
+orchestrator, Amazon Bedrock (Nova Lite) with controlled tool use, DynamoDB, and
+CloudWatch. Editable source: `docs/architecture-aws.drawio` (official AWS icons).
+
+## Screenshots
+
+| Dashboard | AI Research |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![AI Research](docs/screenshots/research.png) |
+
+| Portfolio Risk | Settings and Connection Health |
+|---|---|
+| ![Portfolio](docs/screenshots/portfolio.png) | ![Connection health](docs/screenshots/connection-health.png) |
+
 ## Repository layout
 
 ```
