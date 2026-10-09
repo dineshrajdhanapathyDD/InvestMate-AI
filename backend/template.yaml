@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: InvestMate AI - serverless backend (API Gateway + Lambda + DynamoDB + Bedrock)
+
+Parameters:
+  BedrockModelId:
+    Type: String
+    Default: apac.amazon.nova-lite-v1:0
+    Description: >-
+      Bedrock model id used by the research agent. In ap-south-1 this must be an
+      inference profile id (apac.amazon.nova-lite-v1:0). In us-east-1 you may use
+      the raw id amazon.nova-lite-v1:0.
+  CorsAllowOrigin:
+    Type: String
+    Default: "*"
+    Description: Allowed CORS origin (set to the CloudFront URL in production).
+  NseMcpEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Attempt live NSE MCP calls (will fall back to labelled sample data if blocked).
+
+Globals:
+  Function:
+    Timeout: 29
+    MemorySize: 512
+    Runtime: python3.13
+    Architectures: [x86_64]
+
+Resources:
+  Table:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "investmate-${AWS::StackName}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "investmate-api-${AWS::StackName}"
+      CodeUri: .
+      Handler: investmate.lambda_handler.handler
+      Environment:
+        Variables:
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+          CORS_ALLOW_ORIGIN: !Ref CorsAllowOrigin
+          NSE_MCP_ENABLED: !Ref NseMcpEnabled
+          TABLE_NAME: !Ref Table
+          DYNAMODB_ENABLED: "true"
+      Policies:
+        - Statement:
+            # Cross-region inference profiles (apac.*) route to the underlying
+            # Nova foundation models in several APAC regions, so the policy must
+            # allow the inference profile AND those foundation-model ARNs. Scoped
+            # to Nova models only — still least privilege for this app.
+            - Sid: BedrockInvokeInferenceProfile
+              Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+                - bedrock:Converse
+                - bedrock:ConverseStream
+              Resource:
+                - !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/*"
+                - "arn:aws:bedrock:*::foundation-model/amazon.nova-lite-v1:0"
+                - "arn:aws:bedrock:*::foundation-model/amazon.nova-micro-v1:0"
+                - "arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0"
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Table
+      Events:
+        ApiRoot:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /{proxy+}
+            Method: ANY
+        ApiBase:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /
+            Method: ANY
+
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          ThrottlingBurstLimit: 20
+          ThrottlingRateLimit: 10
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'Content-Type,X-Client-Id'"
+        AllowMethods: "'GET,POST,PUT,OPTIONS'"
+
+Outputs:
+  ApiBaseUrl:
+    Description: Base URL for the InvestMate AI API (append /api/v1/...).
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  TableName:
+    Description: DynamoDB table name.
+    Value: !Ref Table
+  FunctionName:
+    Value: !Ref ApiFunction

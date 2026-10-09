@@ -1,0 +1,10 @@
+# Dependencies bundled into the deployed Lambda.
+# boto3 is already provided by the Lambda Python runtime, so nothing is required
+# for the default (sample) mode. The optional `mcp` SDK is intentionally NOT
+# bundled: the live NSE path is Akamai-blocked from a headless runtime, and the
+# code degrades gracefully to labelled sample mode when the SDK is absent.
+#
+# To enable live NSE calls (e.g. via a browser-session proxy), add:
+#   mcp>=1.2.0
+#   httpx[http2]>=0.27.0
+# and set NSE_MCP_ENABLED=true.
