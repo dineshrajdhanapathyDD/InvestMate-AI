@@ -106,3 +106,6 @@ Architecture diagrams in `docs/`:
 - `architecture.md` - mermaid render of the same design.
 
 InvestMate AI is for educational use only and is not investment advice.
+
+
+
