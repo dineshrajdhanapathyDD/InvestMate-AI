@@ -3,7 +3,7 @@ import { useState } from "react";
 import { api } from "../api";
 import { useAsync } from "../useAsync";
 import { useApp } from "../store";
-import type { History, IndexSnapshot, Meta, Quote } from "../types";
+import type { History, IndexSnapshot, MarketMovers, Meta, Mover, Quote } from "../types";
 import { PriceChart } from "../components/PriceChart";
 import { EmptyState, ErrorState, FreshnessChip, Section, Skeleton } from "../components/ui";
 import { inr, moveClass, pct } from "../format";
@@ -15,10 +15,20 @@ export function Dashboard() {
 
   const indices = useAsync(() => api.indices(), []);
   const history = useAsync(() => api.history(focus, "6M"), [focus]);
+  const movers = useAsync<MarketMovers>(() => api.marketMovers(), []);
 
   return (
     <div className="space-y-4">
       <IndexStrip loading={indices.loading} error={indices.error} data={indices.data} meta={indices.meta as Meta} onRetry={indices.reload} />
+
+      <MoversRow
+        loading={movers.loading}
+        error={movers.error}
+        data={movers.data}
+        meta={movers.meta as Meta}
+        onRetry={movers.reload}
+        onOpen={setFocus}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <Section
@@ -144,6 +154,124 @@ function WatchlistQuotes({
       {symbols.slice(0, 6).map((s) => (
         <WatchRow key={s} symbol={s} onOpen={onOpen} />
       ))}
+    </div>
+  );
+}
+
+function MoversRow({
+  loading,
+  error,
+  data,
+  meta,
+  onRetry,
+  onOpen,
+}: {
+  loading: boolean;
+  error: string | null;
+  data: MarketMovers | null;
+  meta: Meta | null;
+  onRetry: () => void;
+  onOpen: (s: string) => void;
+}) {
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      <Section
+        title="Top gainers"
+        right={<FreshnessChip asOf={meta?.asOf} source={meta?.source} isSample={meta?.isSample} />}
+      >
+        <MoversList loading={loading} error={error} rows={data?.topGainers} onRetry={onRetry} onOpen={onOpen} />
+      </Section>
+      <Section title="Top losers">
+        <MoversList loading={loading} error={error} rows={data?.topLosers} onRetry={onRetry} onOpen={onOpen} />
+      </Section>
+      <Section title="Market breadth">
+        {loading ? (
+          <Skeleton className="h-24" />
+        ) : error || !data ? (
+          <ErrorState message={error || "No data"} onRetry={onRetry} />
+        ) : (
+          <Breadth b={data.breadth} />
+        )}
+      </Section>
+    </div>
+  );
+}
+
+function MoversList({
+  loading,
+  error,
+  rows,
+  onRetry,
+  onOpen,
+}: {
+  loading: boolean;
+  error: string | null;
+  rows?: Mover[];
+  onRetry: () => void;
+  onOpen: (s: string) => void;
+}) {
+  if (loading)
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-9" />
+        ))}
+      </div>
+    );
+  if (error || !rows) return <ErrorState message={error || "No data"} onRetry={onRetry} />;
+  if (!rows.length) return <EmptyState title="No movers" />;
+  return (
+    <div className="space-y-1.5">
+      {rows.map((m) => (
+        <button
+          key={m.symbol}
+          className="w-full flex items-center justify-between bg-navy-800 hover:bg-navy-700 rounded-lg px-3 py-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          onClick={() => onOpen(m.symbol)}
+          title={m.name}
+        >
+          <span className="flex flex-col">
+            <span className="tnum text-sm text-slate-200">{m.symbol}</span>
+            <span className="text-[11px] text-slate-500 line-clamp-1">{m.name}</span>
+          </span>
+          <span className="flex flex-col items-end">
+            <span className="tnum text-sm text-slate-200">&#8377;{inr(m.lastPrice)}</span>
+            <span className={`tnum text-xs ${moveClass(m.changePct)}`}>{pct(m.changePct)}</span>
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Breadth({ b }: { b: MarketMovers["breadth"] }) {
+  const total = b.total || 1;
+  const advPct = (b.advances / total) * 100;
+  const decPct = (b.declines / total) * 100;
+  const unchPct = 100 - advPct - decPct;
+  return (
+    <div className="space-y-3">
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-navy-800">
+        <div className="h-full bg-up" style={{ width: `${advPct}%` }} title={`${b.advances} advancing`} />
+        <div className="h-full bg-slate-500" style={{ width: `${unchPct}%` }} title={`${b.unchanged} unchanged`} />
+        <div className="h-full bg-down" style={{ width: `${decPct}%` }} title={`${b.declines} declining`} />
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="bg-navy-800 rounded-lg p-2">
+          <div className="text-slate-500">Advancing</div>
+          <div className="tnum text-up font-medium">{b.advances}</div>
+        </div>
+        <div className="bg-navy-800 rounded-lg p-2">
+          <div className="text-slate-500">Unchanged</div>
+          <div className="tnum text-slate-300 font-medium">{b.unchanged}</div>
+        </div>
+        <div className="bg-navy-800 rounded-lg p-2">
+          <div className="text-slate-500">Declining</div>
+          <div className="tnum text-down font-medium">{b.declines}</div>
+        </div>
+      </div>
+      <p className="text-[11px] text-slate-500">
+        Breadth across {b.total} tracked stocks. More advancing than declining suggests broad strength, and the reverse suggests weakness.
+      </p>
     </div>
   );
 }

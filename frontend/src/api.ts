@@ -3,6 +3,7 @@ import type {
   History,
   IndexSnapshot,
   IntegrationStatus,
+  MarketMovers,
   PortfolioResult,
   Quote,
   ResearchResult,
@@ -60,6 +61,7 @@ export const api = {
   health: () => request<{ status: string; model: string; region: string }>("/health"),
   integrations: () => request<IntegrationStatus>("/integrations/nse"),
   indices: () => request<IndexSnapshot[]>("/indices"),
+  marketMovers: () => request<MarketMovers>("/market/movers"),
   search: (q: string) => request<SearchResult[]>(`/stocks/search?q=${encodeURIComponent(q)}`),
   quote: (symbol: string) => request<Quote>(`/stocks/${encodeURIComponent(symbol)}`),
   history: (symbol: string, period: string) =>

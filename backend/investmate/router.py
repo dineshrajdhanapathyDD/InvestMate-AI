@@ -76,6 +76,11 @@ class Router:
             r = self.provider.get_index_overview()
             return ok(r.data, r.meta())
 
+        # Market movers (top gainers/losers, breadth, 52-week hi/lo)
+        if route == "/market/movers" and method == "GET":
+            r = self.provider.get_market_movers()
+            return ok(r.data, r.meta())
+
         # Symbol search
         if route == "/stocks/search" and method == "GET":
             q = (query.get("q") or "").strip()

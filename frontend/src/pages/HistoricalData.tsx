@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../api";
 import { useAsync } from "../useAsync";
 import type { History, Meta } from "../types";
@@ -9,8 +10,10 @@ import { inr, moveClass, num, pct } from "../format";
 const PERIODS = ["1W", "1M", "3M", "6M", "1Y", "5Y"];
 
 export function HistoricalData() {
-  const [symbol, setSymbol] = useState("TCS");
-  const [input, setInput] = useState("TCS");
+  const [params] = useSearchParams();
+  const initial = (params.get("symbol") || "TCS").toUpperCase();
+  const [symbol, setSymbol] = useState(initial);
+  const [input, setInput] = useState(initial);
   const [period, setPeriod] = useState("1Y");
 
   const history = useAsync<History>(() => api.history(symbol, period), [symbol, period]);

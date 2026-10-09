@@ -38,6 +38,22 @@ def test_search_matches_symbol_and_name():
     assert "HDFCBANK" in syms and "ICICIBANK" in syms
 
 
+def test_market_movers_shape_and_labelled():
+    p = SampleDataProvider()
+    r = p.get_market_movers()
+    assert r.is_sample is True and r.source == "sample-data"
+    d = r.data
+    assert len(d["topGainers"]) == 5 and len(d["topLosers"]) == 5
+    # gainers sorted desc, losers ascending by changePct
+    g = [x["changePct"] for x in d["topGainers"]]
+    assert g == sorted(g, reverse=True)
+    b = d["breadth"]
+    assert b["advances"] + b["declines"] + b["unchanged"] == b["total"]
+    # 52-week high >= low for every row
+    for row in d["week52"]:
+        assert row["week52High"] >= row["week52Low"]
+
+
 def test_resilient_falls_back_with_label_when_mcp_disabled():
     # NSE_MCP_ENABLED defaults false in tests -> always sample, clearly labelled.
     p = ResilientProvider()

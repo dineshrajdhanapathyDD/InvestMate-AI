@@ -141,3 +141,48 @@ class SampleDataProvider:
             is_sample=True,
             note=_SAMPLE_NOTE,
         )
+
+    def get_market_movers(self) -> ProviderResult:
+        """Top gainers/losers, advance-decline breadth, and 52-week high/low
+        derived from the deterministic series across the whole catalog."""
+        rows = []
+        for sym in catalog.NSE_CATALOG:
+            candles = _series(sym, 2)
+            today, prev = candles[-1], candles[-2]
+            change = today.close - prev.close
+            change_pct = (change / prev.close) * 100 if prev.close else 0.0
+            # 52-week window for high/low
+            year = _series(sym, 252)
+            wk_high = max(c.high for c in year)
+            wk_low = min(c.low for c in year)
+            rows.append({
+                "symbol": sym,
+                "name": catalog.company_name(sym),
+                "lastPrice": round(today.close, 2),
+                "changePct": round(change_pct, 2),
+                "week52High": round(wk_high, 2),
+                "week52Low": round(wk_low, 2),
+            })
+
+        ranked = sorted(rows, key=lambda r: r["changePct"], reverse=True)
+        advances = sum(1 for r in rows if r["changePct"] > 0)
+        declines = sum(1 for r in rows if r["changePct"] < 0)
+        unchanged = len(rows) - advances - declines
+
+        return ProviderResult(
+            data={
+                "topGainers": ranked[:5],
+                "topLosers": list(reversed(ranked[-5:])),
+                "breadth": {
+                    "advances": advances,
+                    "declines": declines,
+                    "unchanged": unchanged,
+                    "total": len(rows),
+                },
+                "week52": sorted(rows, key=lambda r: r["symbol"]),
+            },
+            source="sample-data",
+            as_of=utc_now_iso(),
+            is_sample=True,
+            note=_SAMPLE_NOTE,
+        )

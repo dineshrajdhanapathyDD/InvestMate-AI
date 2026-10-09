@@ -2,6 +2,7 @@ import { useState } from "react";
 import { api, ApiError } from "../api";
 import type { Quote, SearchResult } from "../types";
 import { QuoteCard } from "../components/QuoteCard";
+import { SearchBox } from "../components/SearchBox";
 import { EmptyState, ErrorState, Section, Skeleton } from "../components/ui";
 
 export function StockSearch() {
@@ -11,9 +12,23 @@ export function StockSearch() {
   const [error, setError] = useState<string | null>(null);
   const [quotes, setQuotes] = useState<Record<string, Quote>>({});
 
-  async function doSearch(e?: React.FormEvent) {
+  async function loadOne(symbol: string) {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await api.quote(symbol);
+      setResults([{ symbol: data.symbol, name: data.name, sector: "" }]);
+      setQuotes({ [data.symbol]: data });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not load that stock.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function doSearch(e?: React.FormEvent, override?: string) {
     e?.preventDefault();
-    const query = q.trim();
+    const query = (override ?? q).trim();
     if (!query) return;
     setLoading(true);
     setError(null);
@@ -44,18 +59,19 @@ export function StockSearch() {
   return (
     <div className="space-y-4">
       <Section title="Stock search">
-        <form onSubmit={doSearch} className="flex gap-2" role="search">
-          <input
-            className="input"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search by symbol or company name (e.g. TCS, bank, reliance)"
-            aria-label="Search stocks"
+        <div className="space-y-2">
+          <SearchBox
+            autoFocus
+            placeholder="Start typing a symbol or company name (e.g. TCS, bank, reliance)"
+            onSelect={(sym) => {
+              setQ(sym);
+              loadOne(sym);
+            }}
           />
-          <button className="btn-primary" disabled={loading || !q.trim()}>
-            {loading ? "Searching..." : "Search"}
-          </button>
-        </form>
+          <p className="text-xs text-slate-500">
+            Pick a suggestion to open a stock, or press Enter to see all matches.
+          </p>
+        </div>
       </Section>
 
       <Section title="Results">

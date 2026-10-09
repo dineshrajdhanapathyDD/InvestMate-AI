@@ -85,6 +85,22 @@ export interface ResearchResult {
   beginnerMode: boolean;
 }
 
+export interface Mover {
+  symbol: string;
+  name: string;
+  lastPrice: number;
+  changePct: number;
+  week52High: number;
+  week52Low: number;
+}
+
+export interface MarketMovers {
+  topGainers: Mover[];
+  topLosers: Mover[];
+  breadth: { advances: number; declines: number; unchanged: number; total: number };
+  week52: Mover[];
+}
+
 export interface IntegrationStatus {
   enabled: boolean;
   transport: string;

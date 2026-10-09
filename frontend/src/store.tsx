@@ -1,9 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { api } from "./api";
 
+type Theme = "dark" | "light";
+
 interface AppState {
   beginnerMode: boolean;
   setBeginnerMode: (v: boolean) => void;
+  theme: Theme;
+  toggleTheme: () => void;
   watchlist: string[];
   addToWatchlist: (symbol: string) => void;
   removeFromWatchlist: (symbol: string) => void;
@@ -16,7 +20,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [beginnerMode, setBeginnerModeState] = useState<boolean>(
     () => localStorage.getItem("investmate.beginnerMode") !== "false"
   );
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem("investmate.theme") as Theme) || "dark"
+  );
   const [watchlist, setWatchlist] = useState<string[]>([]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(theme);
+    localStorage.setItem("investmate.theme", theme);
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+  }, []);
 
   useEffect(() => {
     api
@@ -56,7 +74,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ beginnerMode, setBeginnerMode, watchlist, addToWatchlist, removeFromWatchlist, inWatchlist }}
+      value={{ beginnerMode, setBeginnerMode, theme, toggleTheme, watchlist, addToWatchlist, removeFromWatchlist, inWatchlist }}
     >
       {children}
     </Ctx.Provider>

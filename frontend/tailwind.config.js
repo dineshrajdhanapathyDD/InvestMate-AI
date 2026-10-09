@@ -1,15 +1,18 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
+        // Semantic surface tokens driven by CSS variables so the same utility
+        // classes work in both themes. navy-* names kept for backward compat.
         navy: {
-          950: "#0a0e1a",
-          900: "#0f1424",
-          800: "#161c30",
-          700: "#1e2740",
-          600: "#2a3556",
+          950: "var(--surface-0)",
+          900: "var(--surface-1)",
+          800: "var(--surface-2)",
+          700: "var(--surface-3)",
+          600: "var(--surface-4)",
         },
         accent: {
           DEFAULT: "#4f8cff",

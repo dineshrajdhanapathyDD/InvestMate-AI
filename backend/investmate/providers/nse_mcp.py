@@ -198,6 +198,14 @@ class NseMcpProvider:
         data = _run(_call(self.cm_url, tool, {}, self.read_timeout), self.read_timeout + 2)
         return ProviderResult(data=data, source="nse-mcp:cm-market", as_of=utc_now_iso())
 
+    def get_market_movers(self) -> ProviderResult:
+        tools = self._cm()
+        gainers = _match_tool(tools, "gainers") or _match_tool(tools, "top")
+        if not gainers:
+            raise ProviderUnavailable("No market-movers tool discovered on NSE MCP")
+        data = _run(_call(self.cm_url, gainers, {}, self.read_timeout), self.read_timeout + 2)
+        return ProviderResult(data={"raw": data}, source="nse-mcp:cm-market", as_of=utc_now_iso())
+
 
 def _reason(e: Exception) -> str:
     """Human-readable, non-leaky reason string for a failed MCP call."""

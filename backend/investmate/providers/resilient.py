@@ -71,6 +71,12 @@ class ResilientProvider:
             self.sample.get_index_overview(),
         )
 
+    def get_market_movers(self) -> ProviderResult:
+        return self._with_fallback(
+            self._try_live("get_market_movers"),
+            self.sample.get_market_movers(),
+        )
+
     def integration_status(self) -> dict:
         """Sanitized status for GET /api/v1/integrations/nse."""
         status = {
